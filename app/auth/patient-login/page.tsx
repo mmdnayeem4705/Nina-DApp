@@ -47,7 +47,16 @@ export default function PatientLogin() {
     setError("")
 
     try {
-      const supabase = getSupabaseClient()
+      let supabase
+      try {
+        supabase = getSupabaseClient()
+      } catch (clientErr: any) {
+        setError(clientErr.message || "Failed to initialize database connection. Please check your environment variables.")
+        console.error("[v0] Supabase client error:", clientErr)
+        setLoading(false)
+        return
+      }
+
       const message = `Sign in to MediConnect with wallet: ${account}`
       const signature = await signMessage(message, account)
 
@@ -76,7 +85,7 @@ export default function PatientLogin() {
 
         if (fetchError) {
           console.error("[v0] Login error:", fetchError)
-          setError("Error checking user")
+          setError(fetchError.message || "Error checking user")
           setLoading(false)
           return
         }
@@ -125,11 +134,11 @@ export default function PatientLogin() {
         // Store wallet in session
         sessionStorage.setItem("wallet_address", account)
         sessionStorage.setItem("user_type", "patient")
-        router.push("/patient/complete-profile")
+        router.push("/patient/book-appointment")
       }
-    } catch (err) {
-      setError("An error occurred. Please try again.")
-      console.error("[v0] Registration error:", err)
+    } catch (err: any) {
+      console.error("[v0] Auth error:", err)
+      setError(err.message || "An error occurred. Please try again.")
     } finally {
       setLoading(false)
     }

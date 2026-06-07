@@ -47,7 +47,16 @@ export default function DoctorLogin() {
     setError("")
 
     try {
-      const supabase = getSupabaseClient()
+      let supabase
+      try {
+        supabase = getSupabaseClient()
+      } catch (clientErr: any) {
+        setError(clientErr.message || "Failed to initialize database connection. Please check your environment variables.")
+        console.error("[v0] Supabase client error:", clientErr)
+        setLoading(false)
+        return
+      }
+
       const message = `Sign in to MediConnect as Doctor with wallet: ${account}`
       const signature = await signMessage(message, account)
 
@@ -67,7 +76,7 @@ export default function DoctorLogin() {
 
         if (fetchError) {
           console.error("[v0] Login error:", fetchError)
-          setError("Error checking user")
+          setError(fetchError.message || "Error checking user")
           setLoading(false)
           return
         }
@@ -83,50 +92,45 @@ export default function DoctorLogin() {
         router.push("/doctor/dashboard")
       } else {
         // Register new doctor
-        const { data: existingUser } = await supabase.from("users").select("id").eq("wallet_address", account).single()
+        const { data: existingUsers } = await supabase
+          .from("users")
+          .select("id")
+          .eq("wallet_address", account)
 
-        if (existingUser) {
+        if (existingUsers && existingUsers.length > 0) {
           setError("Wallet already registered")
           setLoading(false)
           return
         }
 
-        const { data: newUser, error: insertError } = await supabase
-          .from("users")
-          .insert([
-            {
-              wallet_address: account,
-              user_type: "doctor",
-              full_name: fullName,
-              email,
-              phone,
-            },
-          ])
-          .select()
-          .single()
+        const response = await fetch("/api/auth/doctor/register", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            wallet_address: account,
+            full_name: fullName,
+            email,
+            phone,
+          }),
+        })
 
-        if (insertError) {
-          setError("Registration failed")
+        const data = await response.json()
+
+        if (!response.ok) {
+          setError(data.error || "Registration failed")
           setLoading(false)
           return
         }
-
-        // Create doctor profile
-        await supabase.from("doctors").insert([
-          {
-            user_id: newUser.id,
-            specialization: "",
-            consultation_fee: 0,
-          },
-        ])
 
         sessionStorage.setItem("wallet_address", account)
         sessionStorage.setItem("user_type", "doctor")
         router.push("/doctor/complete-profile")
       }
-    } catch (err) {
-      setError("An error occurred. Please try again.")
-      console.error(err)
+    } catch (err: any) {
+      console.error("[v0] Auth error:", err)
+      setError(err.message || "An error occurred. Please try again.")
     } finally {
       setLoading(false)
     }
