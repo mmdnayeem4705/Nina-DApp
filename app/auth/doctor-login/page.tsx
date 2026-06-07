@@ -59,20 +59,20 @@ export default function DoctorLogin() {
 
       if (isLogin) {
         // Check if doctor exists
-        const { data: existingUser, error: fetchError } = await supabase
+        const { data: existingUsers, error: fetchError } = await supabase
           .from("users")
           .select("id")
           .eq("wallet_address", account)
           .eq("user_type", "doctor")
-          .single()
 
-        if (fetchError && fetchError.code !== "PGRST116") {
+        if (fetchError) {
+          console.error("[v0] Login error:", fetchError)
           setError("Error checking user")
           setLoading(false)
           return
         }
 
-        if (!existingUser) {
+        if (!existingUsers || existingUsers.length === 0) {
           setError("Doctor account not found. Please register first.")
           setLoading(false)
           return
@@ -146,9 +146,20 @@ export default function DoctorLogin() {
                 Connect MetaMask Wallet
               </Button>
             ) : (
-              <div className="bg-secondary p-3 rounded-lg mb-4">
-                <p className="text-xs text-muted-foreground">Connected Wallet:</p>
-                <p className="text-sm font-mono break-all">{account}</p>
+              <div className="bg-secondary p-3 rounded-lg mb-4 flex items-center justify-between">
+                <div className="flex-1">
+                  <p className="text-xs text-muted-foreground">Connected Wallet:</p>
+                  <p className="text-sm font-mono break-all">{account}</p>
+                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setAccount(null)}
+                  className="ml-2 shrink-0"
+                >
+                  Change
+                </Button>
               </div>
             )}
 
