@@ -1,20 +1,25 @@
-# Run commands for the Doctor Appointment Booking System (Blockchain Edition)
 
-# 1. Install dependencies (pnpm is required)
+Run commands for the Doctor Appointment Booking System (Blockchain Edition)
+
+Note for Windows CMD users: lines starting with `#` are not comments in Command Prompt.
+Use PowerShell (which supports `#` comments) or run the provided
+`run_commands_windows.cmd` file instead.
+
+1. Install dependencies (pnpm is required)
 pnpm install
 
-# 2. Create .env.local with required variables (see SETUP.md)
-# Example: copy .env.example or create manually
-# cp .env.example .env.local
+2. Create .env.local with required variables (see SETUP.md)
+Example: copy .env.example or create manually (PowerShell):
+cp .env.example .env.local
 
-# 3. Start development server
+3. Start development server
 pnpm dev
 
-# 4. Build for production
+4. Build for production
 pnpm build
 
-# 5. Run production server
+5. Run production server
 pnpm start
 
-# 6. Lint
+6. Lint
 pnpm lint
