@@ -70,14 +70,4 @@ Donation Record Stored
 ---
 
 
-## 🌟 Key Features
-
-✅ MetaMask Authentication
-✅ Blockchain-Based Payments
-✅ Real-Time Appointment Booking
-✅ Doctor Approval System
-✅ Role-Based Dashboards
-✅ Organ Donation Registration
-✅ Secure & Transparent Healthcare Platform
-
 🚀 **MediChain combines Blockchain, Web3, and Healthcare to provide a modern and secure doctor appointment booking experience.**
