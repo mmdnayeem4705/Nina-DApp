@@ -2,7 +2,7 @@
 
 import { useAuth } from '@/app/context/AuthContext';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { use, useEffect, useState } from 'react';
 import Link from 'next/link';
 
 interface Appointment {
@@ -21,7 +21,12 @@ interface Appointment {
   paymentTxHash?: string;
 }
 
-export default function AppointmentConfirmed({ params }: { params: { appointmentId: string } }) {
+export default function AppointmentConfirmed({
+  params,
+}: {
+  params: Promise<{ appointmentId: string }>;
+}) {
+  const { appointmentId } = use(params);
   const { user, isLoading } = useAuth();
   const router = useRouter();
   const [appointment, setAppointment] = useState<Appointment | null>(null);
@@ -36,7 +41,7 @@ export default function AppointmentConfirmed({ params }: { params: { appointment
   useEffect(() => {
     const fetchAppointment = async () => {
       try {
-        const response = await fetch(`/api/appointments/${params.appointmentId}`);
+        const response = await fetch(`/api/appointments/${appointmentId}`);
         const data = await response.json();
         setAppointment(data.appointment);
       } catch (err) {
@@ -47,7 +52,7 @@ export default function AppointmentConfirmed({ params }: { params: { appointment
     };
 
     fetchAppointment();
-  }, [params.appointmentId]);
+  }, [appointmentId]);
 
   if (isLoading || loading) {
     return (

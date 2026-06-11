@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ThemeToggle } from '@/app/components/ThemeToggle';
+import { PatientAccountMenu } from '@/app/components/PatientAccountMenu';
 
 interface Doctor {
   id: number;
@@ -18,7 +19,7 @@ interface Doctor {
 }
 
 export default function PatientDashboard() {
-  const { user, isLoading, logout } = useAuth();
+  const { user, isLoading } = useAuth();
   const router = useRouter();
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [loading, setLoading] = useState(true);
@@ -81,32 +82,9 @@ export default function PatientDashboard() {
               <p className="text-xs text-muted-foreground">Welcome, {user.fullName || 'Patient'}</p>
             </div>
           </div>
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-3">
             <ThemeToggle />
-            <Link href="/patient/my-appointments">
-              <button className="rounded-full bg-primary px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-primary/15 transition duration-300 hover:-translate-y-0.5 hover:bg-primary/90 cursor-pointer">
-                My Appointments
-              </button>
-            </Link>
-            <Link href="/patient/organ-donation">
-              <button className="rounded-full bg-violet-600 px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-violet-600/15 transition duration-300 hover:-translate-y-0.5 hover:bg-violet-500 cursor-pointer">
-                Organ Donation
-              </button>
-            </Link>
-            <Link href="/patient/settings">
-              <button className="rounded-full bg-muted px-5 py-2 text-sm font-semibold text-foreground border border-border transition duration-300 hover:bg-muted/80 cursor-pointer">
-                Settings
-              </button>
-            </Link>
-            <button
-              onClick={() => {
-                logout();
-                router.push('/');
-              }}
-              className="rounded-full bg-rose-500 px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-rose-500/15 transition duration-300 hover:-translate-y-0.5 hover:bg-rose-400 cursor-pointer"
-            >
-              Logout
-            </button>
+            <PatientAccountMenu />
           </div>
         </div>
       </header>

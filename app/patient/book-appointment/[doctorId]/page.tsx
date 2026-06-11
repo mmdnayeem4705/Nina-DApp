@@ -2,7 +2,7 @@
 
 import { useAuth } from '@/app/context/AuthContext';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { use, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { payForAppointment, formatAddress } from '@/lib/ethereum';
 
@@ -25,7 +25,12 @@ interface BookingFormData {
   description: string;
 }
 
-export default function BookAppointment({ params }: { params: { doctorId: string } }) {
+export default function BookAppointment({
+  params,
+}: {
+  params: Promise<{ doctorId: string }>;
+}) {
+  const { doctorId } = use(params);
   const { user, isLoading } = useAuth();
   const router = useRouter();
   const [doctor, setDoctor] = useState<Doctor | null>(null);
@@ -40,6 +45,7 @@ export default function BookAppointment({ params }: { params: { doctorId: string
     description: '',
   });
   const [submitting, setSubmitting] = useState(false);
+  const [paying, setPaying] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [appointmentId, setAppointmentId] = useState<number | null>(null);
@@ -72,7 +78,7 @@ export default function BookAppointment({ params }: { params: { doctorId: string
             consultationFee: '0.015',
           },
         };
-        setDoctor(mockDoctors[params.doctorId] || null);
+        setDoctor(mockDoctors[doctorId] || null);
       } catch (err) {
         console.error('[v0] Error fetching doctor:', err);
         setError('Failed to load doctor information');
@@ -82,7 +88,7 @@ export default function BookAppointment({ params }: { params: { doctorId: string
     };
 
     fetchDoctor();
-  }, [params.doctorId]);
+  }, [doctorId]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -148,6 +154,9 @@ export default function BookAppointment({ params }: { params: { doctorId: string
       return;
     }
 
+    setPaying(true);
+    setError(null);
+
     try {
       const txHash = await payForAppointment(
         appointmentId.toString(),
@@ -155,7 +164,6 @@ export default function BookAppointment({ params }: { params: { doctorId: string
         doctor.consultationFee
       );
 
-      // Update appointment with payment status
       await fetch(`/api/appointments/${appointmentId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -169,6 +177,8 @@ export default function BookAppointment({ params }: { params: { doctorId: string
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Payment failed');
       setShowPaymentModal(false);
+    } finally {
+      setPaying(false);
     }
   };
 
@@ -409,22 +419,24 @@ export default function BookAppointment({ params }: { params: { doctorId: string
             </div>
 
             <p className="text-sm text-gray-600 mb-4">
-              By clicking "Pay with MetaMask", you will be redirected to your MetaMask wallet to
-              confirm the payment.
+              Confirm the payment in MetaMask on the Sepolia test network. The app uses a backup RPC
+              to track confirmation if MetaMask&apos;s network is slow.
             </p>
 
             <div className="flex gap-3">
               <button
                 onClick={() => setShowPaymentModal(false)}
-                className="flex-1 py-2 px-4 border border-gray-300 text-gray-700 rounded font-medium hover:bg-gray-50 transition"
+                disabled={paying}
+                className="flex-1 py-2 px-4 border border-gray-300 text-gray-700 rounded font-medium hover:bg-gray-50 transition disabled:opacity-50"
               >
                 Cancel
               </button>
               <button
                 onClick={handlePayment}
-                className="flex-1 py-2 px-4 bg-orange-500 text-white rounded font-medium hover:bg-orange-600 transition"
+                disabled={paying}
+                className="flex-1 py-2 px-4 bg-orange-500 text-white rounded font-medium hover:bg-orange-600 transition disabled:opacity-50"
               >
-                Pay with MetaMask
+                {paying ? 'Waiting for confirmation...' : 'Pay with MetaMask'}
               </button>
             </div>
           </div>
